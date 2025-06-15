@@ -28,9 +28,9 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 # Load the scaler, model, and recipes with clusters
-scaler = joblib.load('../scaler.pkl')
-model = joblib.load('../meal_cluster_model.pkl')
-recipes = pd.read_csv('../recipes_with_clusters.csv')
+scaler = joblib.load('scaler.pkl')
+model = joblib.load('meal_cluster_model.pkl')
+recipes = pd.read_csv('recipes_with_clusters.csv')
 
 def calculate_bmr(age, weight, height):
     # Mifflin–St Jeor equation (male)

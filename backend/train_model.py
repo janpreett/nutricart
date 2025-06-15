@@ -1,6 +1,6 @@
 import pandas as pd
-from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 import joblib
 
 # Load the dataset
@@ -17,14 +17,12 @@ scaled_features = scaler.fit_transform(features)
 model = KMeans(n_clusters=10, random_state=42, n_init=10)
 model.fit(scaled_features)
 
-# Predict clusters for the recipes
+# Assign clusters to recipes
 data['cluster'] = model.predict(scaled_features)
 
-# Save the scaler and model
+# Save the scaler, model, and updated recipes
 joblib.dump(scaler, 'scaler.pkl')
 joblib.dump(model, 'meal_cluster_model.pkl')
-
-# Save the recipes with cluster labels
 data.to_csv('recipes_with_clusters.csv', index=False)
 
-print("Model trained, scaler saved, and recipes with clusters saved to 'recipes_with_clusters.csv'")
+print("Files generated successfully.")
