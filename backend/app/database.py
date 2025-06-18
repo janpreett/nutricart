@@ -22,6 +22,45 @@ class Profile(Base):
     weight  = Column(Float,   nullable=False)
     height  = Column(Float,   nullable=False)
     goal    = Column(String,  nullable=False)
+    dietry_preferences = Column(String, nullable=False)
+    allergies = Column(String, nullable=True)
+    created_at = Column(String, nullable=False) 
+
+# Define User model
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    name     = Column(String, nullable=False)
+    username  = Column(String,   nullable=False)
+    password  = Column(String,   nullable=False)
+    securityQA_json = Column(JSON,  nullable=False)
+    created_at = Column(DateTime,  nullable=False)
+
+# Define MealPlan model
+class MealPlan(Base):
+    __tablename__ = "mealPlans"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    plan_json = Column(JSON, nullable=False)
+    plan_ids = Column(String, nullable=False)  # Comma-separated list of recipe IDs
+    created_at = Column(DateTime,  nullable=False)
+
+# Define Meal model
+class Meal(Base):
+    __tablename__ = "meals"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    ingredient_ids = Column(String, nullable=False)  # Comma-separated list of ingredient Ids
+    instructions = Column(String, nullable=False)
+    created_at = Column(DateTime,  nullable=False)
+
+# Define Ingredient model
+class Ingredient(Base):
+    __tablename__ = "ingredients"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    created_at = Column(DateTime,  nullable=False)
 
 # Initialize database
 def init_db():
