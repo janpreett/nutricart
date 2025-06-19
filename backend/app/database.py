@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import json
 from sqlalchemy.types import TypeDecorator, TEXT
-import os
 
 # Custom JSON type for SQLite
 class JSON(TypeDecorator):
@@ -85,9 +84,7 @@ def init_db():
 
 # Load the scaler, model, and recipes with clusters
 scaler = joblib.load('scaler.pkl')
-script_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(script_dir, 'meal_cluster_model.pkl')
-model = joblib.load(model_path)
+model = joblib.load('meal_cluster_model.pkl')
 recipes = pd.read_csv('recipes_with_clusters.csv')
 
 def calculate_bmr(age, weight, height):
