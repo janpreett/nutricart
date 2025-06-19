@@ -1,10 +1,26 @@
-from sqlalchemy import create_engine, Column, Integer, Float, String
+from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import random
 import joblib
 import pandas as pd
 import numpy as np
+import json
+from sqlalchemy.types import TypeDecorator, TEXT
+
+# Custom JSON type for SQLite
+class JSON(TypeDecorator):
+    impl = TEXT
+    
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+    
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./nutricart.db"
 
