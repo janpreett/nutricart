@@ -10,7 +10,8 @@ export default function ProfileScreen() {
   const navigate = useNavigate();
 
   const submitProfile = async () => {
-    const profile = { user_id: 1, age, weight, height, goal };
+    const user_id = Math.floor(Math.random() * 1000000);
+    const profile = { user_id, age, weight, height, goal };
     await fetch('http://127.0.0.1:8000/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
