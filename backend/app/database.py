@@ -38,9 +38,9 @@ class Profile(Base):
     weight  = Column(Float,   nullable=False)
     height  = Column(Float,   nullable=False)
     goal    = Column(String,  nullable=False)
-    dietry_preferences = Column(String, nullable=True)
-    allergies = Column(String, nullable=True)
-    created_at = Column(String, nullable=True) 
+    # dietry_preferences = Column(String, nullable=True)
+    # allergies = Column(String, nullable=True)
+    # created_at = Column(String, nullable=True) 
 
 # Define User model
 class User(Base):
