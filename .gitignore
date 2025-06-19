@@ -1,0 +1,15 @@
+# Backend Python files
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.venv/
+backend/venv/
+backend/env/
+backend/.env
+backend/**/*.pyc
+backend/**/*.pyo
+backend/**/*.pyd
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/**/.mypy_cache/
+backend/**/*.db
