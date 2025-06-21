@@ -1,0 +1,28 @@
+# --- Stage 1: build ---
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy manifest and install ALL deps (including dev)
+COPY package*.json ./
+RUN npm install
+
+# Copy source and build
+COPY . .
+RUN npm run build
+
+# --- Stage 2: serve ---
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install a static server
+RUN npm install -g serve
+
+# Copy the built assets from builder
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 4173
+
+# Serve the /dist folder
+CMD ["serve", "-s", "dist", "-l", "4173"]

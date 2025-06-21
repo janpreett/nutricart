@@ -1,0 +1,37 @@
+{
+  "name": "nutricart",
+  "version": "1.0.0",
+  "description": "NutriCart - Meal Planning Application",
+  "scripts": {
+    "start": "docker-compose up --build -d",
+    "stop": "docker-compose down",
+    "restart": "docker-compose down && docker-compose up --build -d",
+    "logs": "docker-compose logs -f",
+    "clean": "docker-compose down -v --remove-orphans && docker-compose down --rmi all",
+    "status": "docker-compose ps",
+    "dev": "docker-compose up --build",
+    "prod": "docker-compose -f docker-compose.prod.yml up --build -d",
+    "prod:stop": "docker-compose -f docker-compose.prod.yml down",
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && python -m uvicorn app.main:app --reload",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && pip install -r requirements.txt"
+  },
+  "keywords": [
+    "meal-planning",
+    "nutrition",
+    "react",
+    "fastapi",
+    "docker"
+  ],
+  "author": "NutriCart",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/janpreett/nutricart.git"
+  }
+}

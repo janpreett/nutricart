@@ -1,0 +1,10 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+
+# SQLite database file
+nutricart.db
+
+# Environment
+.env
