@@ -1,7 +1,9 @@
+// frontend/src/components/Header.jsx
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import './Header.css'
+import logoSrc from '../assets/logo.png'
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth()
@@ -11,7 +13,11 @@ export default function Header() {
       <div className="container">
         <div className="logo">
           <NavLink to="/profile" className="logo-link">
-            NutriCart
+            <img
+              src={logoSrc}
+              alt="NutriCart logo"
+              className="logo-image"
+            />
           </NavLink>
         </div>
         <nav className="nav">
@@ -21,7 +27,9 @@ export default function Header() {
                 <li>
                   <NavLink
                     to="/profile"
-                    className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                    className={({ isActive }) =>
+                      isActive ? 'nav-link active' : 'nav-link'
+                    }
                   >
                     Profile
                   </NavLink>
@@ -29,7 +37,9 @@ export default function Header() {
                 <li>
                   <NavLink
                     to="/plan"
-                    className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                    className={({ isActive }) =>
+                      isActive ? 'nav-link active' : 'nav-link'
+                    }
                   >
                     Meal Plan
                   </NavLink>
@@ -43,8 +53,16 @@ export default function Header() {
               </>
             ) : (
               <>
-                <li><NavLink to="/login" className="nav-link">Login</NavLink></li>
-                <li><NavLink to="/register" className="nav-link">Register</NavLink></li>
+                <li>
+                  <NavLink to="/login" className="nav-link">
+                    Login
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/register" className="nav-link">
+                    Register
+                  </NavLink>
+                </li>
               </>
             )}
           </ul>

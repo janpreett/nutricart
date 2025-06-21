@@ -22,12 +22,18 @@
   height: 100%;
 }
 
-.logo a {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: black;
-  text-decoration: none;
+
+.logo-link {
+  display: inline-block;
   line-height: 1;
+  text-decoration: none;
+}
+
+
+.logo-image {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .nav ul {
@@ -51,7 +57,7 @@
   font-weight: 500;
   transition: color 0.2s;
   display: inline-block;
-  line-height: 1.25rem; /* Match with logo font size */
+  line-height: 1.25rem; 
 }
 
 .nav a:hover {
