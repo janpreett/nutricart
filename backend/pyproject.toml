@@ -1,0 +1,25 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "-x"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:passlib.*",
+    "ignore::DeprecationWarning:crypt.*",
+    "ignore::DeprecationWarning:pandas.*",
+    "ignore::UserWarning:pandas.*",
+    "ignore::FutureWarning:pandas.*",
+    "ignore::DeprecationWarning:jose.*",
+    "ignore::DeprecationWarning:jwt.*",
+    "ignore::DeprecationWarning:email_validator.*",
+    # Third-party library warnings
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    # Allow our own warnings to show
+    "default::DeprecationWarning:app.*",
+    "default::DeprecationWarning:tests.*",
+]

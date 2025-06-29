@@ -1,13 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 import random
 import joblib
 import pandas as pd
 import numpy as np
 import json
 from sqlalchemy.types import TypeDecorator, TEXT
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Custom JSON type for SQLite
 class JSON(TypeDecorator):
@@ -53,8 +52,8 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 # Define MealPlan model
 class MealPlan(Base):
@@ -85,7 +84,7 @@ class Contact(Base):
     phone = Column(String, nullable=True)
     message = Column(String, nullable=False)
     sms_consent = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 # Define Ingredient model

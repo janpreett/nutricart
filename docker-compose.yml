@@ -1,9 +1,6 @@
-
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: nutricart-backend-test
     container_name: nutricart-backend
     ports:
       - "8000:8000"
@@ -48,8 +45,51 @@ services:
     networks:
       - nutricart-network
 
+  # Backend test service
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: nutricart-backend-test
+    volumes:
+      - ./backend:/app
+      - test_coverage:/app/htmlcov
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///./test.db
+      - PYTEST_ARGS=${PYTEST_ARGS:---verbose}
+    command: pytest tests ${PYTEST_ARGS:---verbose}
+    depends_on:
+      - backend
+    networks:
+      - nutricart-network
+    profiles:
+      - test
+
+  # Test with coverage service
+  backend-test-coverage:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: nutricart-backend-test-coverage
+    volumes:
+      - ./backend:/app
+      - test_coverage:/app/htmlcov
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///./test.db
+    command: pytest tests --cov=app --cov-report=html --cov-report=term --verbose
+    depends_on:
+      - backend
+    networks:
+      - nutricart-network
+    profiles:
+      - test
+
 volumes:
   backend_data:
+    driver: local
+  test_coverage:
     driver: local
 
 networks:

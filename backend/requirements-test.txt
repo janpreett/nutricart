@@ -1,0 +1,13 @@
+# Testing Requirements
+pytest==8.4.1
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+httpx==0.28.1
+
+# Additional test utilities
+coverage==7.6.9
+pytest-html==4.1.1
+pytest-xdist==3.6.0
+
+# Data processing (for pandas compatibility)
+pyarrow>=14.0.0

@@ -13,3 +13,26 @@ backend/.coverage
 backend/htmlcov/
 backend/**/.mypy_cache/
 backend/**/*.db
+
+# Test files and directories
+backend/test.db
+backend/test_*.db
+backend/tests/__pycache__/
+backend/tests/**/__pycache__/
+*.cover
+*.log
+coverage.xml
+.tox/
+.cache
+nosetests.xml
+
+# Model backup files
+backend/*.pkl.tmp
+backend/*.pkl.backup
+
+# Test artifacts
+backend/htmlcov/
+backend/.coverage
+backend/test-results.xml
+backend/pytest_cache/
+backend/.pytest_cache/

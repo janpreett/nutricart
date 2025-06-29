@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import Optional
+from contextlib import asynccontextmanager
 
 from app.database import init_db, SessionLocal, Profile, User, Contact, generate_meal_plan
 from app.auth import (
@@ -26,9 +27,7 @@ class ProfileCreate(BaseModel):
 
 class ProfileResponse(ProfileCreate):
     user_id: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserRegister(BaseModel):
     first_name: str
@@ -51,9 +50,7 @@ class UserResponse(BaseModel):
     email:       str
     is_active:   bool
     is_verified: bool
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ContactCreate(BaseModel):
     first_name: str
@@ -65,13 +62,20 @@ class ContactCreate(BaseModel):
 
 class ContactResponse(ContactCreate):
     id: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- App setup -------------------------------------------------------------
 
-app = FastAPI(title="NutriCart API")
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    yield
+    # Shutdown (if needed)
+
+app = FastAPI(title="NutriCart API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -80,10 +84,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 @app.get("/")
 async def read_root():
