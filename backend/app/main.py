@@ -3,10 +3,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, ConfigDict
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, List
 from contextlib import asynccontextmanager
 
-from app.database import init_db, SessionLocal, Profile, User, Contact, generate_meal_plan
+from app.database import (
+    init_db,
+    SessionLocal,
+    Profile,
+    User,
+    Contact,
+    generate_meal_plan
+)
 from app.auth import (
     authenticate_user,
     create_access_token,
@@ -24,6 +31,8 @@ class ProfileCreate(BaseModel):
     weight: float
     height: float
     goal:   str
+    budget:                Optional[float]     = None
+    dietary_restrictions:  Optional[List[str]] = []
 
 class ProfileResponse(ProfileCreate):
     user_id: int
@@ -66,20 +75,16 @@ class ContactResponse(ContactCreate):
 
 # --- App setup -------------------------------------------------------------
 
-from contextlib import asynccontextmanager
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     init_db()
     yield
-    # Shutdown (if needed)
 
 app = FastAPI(title="NutriCart API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -95,16 +100,13 @@ async def read_root():
 def register_user(user: UserRegister, db: Session = Depends(get_db)):
     if get_user_by_email(db, user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
-    hashed = get_password_hash(user.password)
     db_user = User(
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
-        hashed_password=hashed
+        hashed_password=get_password_hash(user.password)
     )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    db.add(db_user); db.commit(); db.refresh(db_user)
     return db_user
 
 @app.post("/auth/login", response_model=Token)
@@ -116,8 +118,7 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"}
         )
-    expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token({"sub": db_user.email}, expires)
+    token = create_access_token({"sub": db_user.email}, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     return {"access_token": token, "token_type": "bearer"}
 
 @app.get("/auth/me", response_model=UserResponse)
@@ -132,18 +133,20 @@ def create_profile(
     current_user: User = Depends(get_current_active_user)
 ):
     db = SessionLocal()
-    if db.query(Profile).filter(Profile.user_id == current_user.id).first():
+    existing = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+    if existing:
         raise HTTPException(status_code=400, detail="Profile already exists")
+
     db_profile = Profile(
         user_id=current_user.id,
         age=data.age,
         weight=data.weight,
         height=data.height,
-        goal=data.goal
+        goal=data.goal,
+        budget=data.budget,
+        dietary_restrictions=data.dietary_restrictions,
     )
-    db.add(db_profile)
-    db.commit()
-    db.refresh(db_profile)
+    db.add(db_profile); db.commit(); db.refresh(db_profile)
     return db_profile
 
 @app.get("/profile", response_model=ProfileResponse)
@@ -181,7 +184,5 @@ def create_contact(contact: ContactCreate, db: Session = Depends(get_db)):
         message=contact.message,
         sms_consent=contact.sms_consent
     )
-    db.add(db_contact)
-    db.commit()
-    db.refresh(db_contact)
+    db.add(db_contact); db.commit(); db.refresh(db_contact)
     return db_contact

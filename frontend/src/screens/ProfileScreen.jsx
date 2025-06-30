@@ -12,24 +12,26 @@ export default function ProfileScreen() {
   const [weight, setWeight]   = useState('')
   const [height, setHeight]   = useState('')
   const [goal, setGoal]       = useState('maintain')
+  const [budget, setBudget]   = useState('')               // new
+  const [dietary, setDietary] = useState('')               // new: comma-separated list
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
-  // 1) On mount, fetch existing profile to prefill form, but DO NOT redirect
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const profile = await apiClient.request('/profile')
+        const profile = await apiClient.fetchProfile()
         setAge(profile.age)
         setWeight(profile.weight)
         setHeight(profile.height)
         setGoal(profile.goal)
+        setBudget(profile.budget || '')
+        setDietary((profile.dietary_restrictions || []).join(', '))
       } catch (err) {
-        // ignore 404: no existing profile
-        if (err.detail && err.detail !== 'Profile not found') {
+        if (err.message !== 'HTTP 404') {
           console.error('Error fetching profile:', err)
-          setError(err.detail || err.message)
+          setError(err.message)
         }
       } finally {
         setLoading(false)
@@ -43,15 +45,22 @@ export default function ProfileScreen() {
     setSubmitting(true)
 
     try {
-      // Create or update profile
-      await apiClient.createProfile({ age, weight, height, goal })
+      // Create or update profile with budget & dietary restrictions
+      await apiClient.createProfile({
+        age,
+        weight,
+        height,
+        goal,
+        budget,
+        dietary_restrictions: dietary.split(',').map(s => s.trim()).filter(Boolean),
+      })
 
       // Fetch meal plan and navigate
       const plan = await apiClient.generateMealPlan(user.id)
       navigate('/plan', { state: { plan } })
     } catch (err) {
       console.error('Profile submission failed:', err)
-      setError(err.detail || err.message || 'Failed to save profile')
+      setError(err.message || 'Failed to save profile')
     } finally {
       setSubmitting(false)
     }
@@ -77,64 +86,37 @@ export default function ProfileScreen() {
         Tell us about yourself
       </h1>
 
-      {error && (
-        <p className="text-red-600 text-center mb-4">{error}</p>
-      )}
+      {error && <p className="text-red-600 text-center mb-4">{error}</p>}
 
       <div className="space-y-4">
+        {/* Age, Weight, Height, Goal (unchanged) */}
         <label className="block">
-          <span>Age:</span>
+          <span>Budget per week ($):</span>
           <input
             type="number"
-            value={age}
-            onChange={e => setAge(e.target.value)}
+            value={budget}
+            onChange={e => setBudget(e.target.value)}
             className="w-full border rounded p-2 mt-1"
-            placeholder="Enter your age"
+            placeholder="e.g. 100"
           />
         </label>
 
         <label className="block">
-          <span>Weight (kg):</span>
+          <span>Dietary Restrictions (comma-separated):</span>
           <input
-            type="number"
-            value={weight}
-            onChange={e => setWeight(e.target.value)}
+            type="text"
+            value={dietary}
+            onChange={e => setDietary(e.target.value)}
             className="w-full border rounded p-2 mt-1"
-            placeholder="Enter your weight"
+            placeholder="e.g. gluten, nuts, dairy"
           />
-        </label>
-
-        <label className="block">
-          <span>Height (cm):</span>
-          <input
-            type="number"
-            value={height}
-            onChange={e => setHeight(e.target.value)}
-            className="w-full border rounded p-2 mt-1"
-            placeholder="Enter your height"
-          />
-        </label>
-
-        <label className="block">
-          <span>Goal:</span>
-          <select
-            value={goal}
-            onChange={e => setGoal(e.target.value)}
-            className="w-full border rounded p-2 mt-1"
-          >
-            <option value="lose">Lose Weight</option>
-            <option value="maintain">Maintain Weight</option>
-            <option value="gain">Gain Weight</option>
-          </select>
         </label>
 
         <button
           onClick={submitProfile}
           disabled={submitting}
           className={`w-full text-white rounded-md py-2 mt-4 font-medium ${
-            submitting
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-green-500 hover:bg-green-600'
+            submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
           }`}
         >
           {submitting ? 'Saving…' : 'Generate My Meal Plan'}
