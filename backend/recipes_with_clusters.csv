@@ -1,16 +1,52 @@
-name,protein,carbs,fat,calories,cluster
-Chicken Salad,30,10,15,295,1
-Beef Stew,25,20,20,360,6
-Veggie Stir Fry,10,30,10,250,0
-Tofu Curry,15,25,15,295,8
-Salmon Bowl,35,15,25,425,3
-Quinoa Bowl,12,35,10,278,5
-Turkey Wrap,28,18,12,292,9
-Lentil Soup,18,22,5,205,7
-Greek Yogurt Parfait,20,15,2,158,7
-Grilled Shrimp Skewers,32,8,12,268,1
-Chickpea Salad,14,27,9,245,0
-Egg White Omelette,24,2,5,149,2
-Brown Rice Bowl,9,42,7,267,5
-Protein Pancakes,26,20,6,238,4
-Stuffed Peppers,22,18,10,250,4
+name,calories,protein,carbs,fat,cluster
+Grilled Chicken Breast with Quinoa,470,40,35,20,1
+Salmon with Brown Rice,520,38,45,22,4
+Tofu Stir Fry,410,22,40,18,0
+Beef Stew,360,28,20,16,5
+Lentil Soup with Whole Wheat Bread,390,24,45,12,7
+Chickpea Salad,370,18,35,16,7
+Avocado Toast with Egg,430,20,30,28,8
+Shrimp Pasta,550,35,50,20,4
+Turkey Sandwich,400,30,32,14,5
+Grilled Veggie Wrap,370,15,38,14,7
+Omelette with Spinach and Feta,390,28,6,28,3
+Greek Yogurt with Berries,300,20,25,10,2
+Banana Peanut Butter Smoothie,450,18,40,22,0
+Quinoa Bowl,500,25,50,20,6
+Baked Cod with Roasted Veggies,460,35,25,18,1
+Stuffed Bell Peppers,480,30,35,22,1
+Black Bean Tacos,410,22,40,14,7
+Protein Smoothie,250,20,10,8,2
+Chicken Caesar Wrap,530,35,38,24,4
+Egg Salad Sandwich,400,20,28,24,8
+Vegan Buddha Bowl,510,22,55,18,6
+Turkey Meatballs with Spaghetti,560,36,48,24,4
+Chicken and Sweet Potato,480,32,45,18,1
+Veggie Stir-Fry with Tofu,440,25,35,20,0
+Miso Soup with Noodles,390,16,42,12,7
+Cottage Cheese and Pineapple,280,22,22,10,2
+Avocado Tuna Salad,420,30,12,28,3
+Almond Butter Oatmeal,460,18,48,22,6
+Grilled Portobello Burger,430,20,35,20,0
+Chicken Fajitas,520,36,38,22,4
+Pesto Pasta with Veggies,490,22,55,18,6
+Eggplant Parmesan,470,24,40,22,0
+Spinach Ricotta Stuffed Shells,460,26,42,20,0
+Beef Tacos,530,34,30,28,4
+Sushi Bowl,490,28,45,18,1
+Pita with Hummus and Veggies,370,14,40,16,7
+BBQ Chicken Sandwich,540,38,45,20,4
+Tuna Pasta Salad,460,32,38,18,1
+Curry Chickpeas with Rice,500,20,55,18,6
+Mushroom Risotto,480,20,52,18,6
+Zucchini Noodles with Turkey,410,32,20,20,5
+Couscous Salad,390,14,44,14,7
+Falafel Wrap,460,18,42,22,0
+Tilapia with Mixed Veggies,440,36,28,18,1
+Turkey Chili,500,34,30,24,4
+Avocado Chicken Salad,470,32,15,30,3
+Ricotta and Spinach Wrap,450,20,35,22,0
+Tofu Scramble,390,22,12,28,3
+Chicken Shawarma Rice Bowl,530,36,42,24,4
+Vegetable Korma with Rice,520,20,55,20,6
+Egg Muffins with Cheese,300,20,8,22,9
