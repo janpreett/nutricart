@@ -1,52 +1,206 @@
 name,calories,protein,carbs,fat,cluster
-Grilled Chicken Breast with Quinoa,470,40,35,20,1
-Salmon with Brown Rice,520,38,45,22,4
-Tofu Stir Fry,410,22,40,18,0
-Beef Stew,360,28,20,16,5
-Lentil Soup with Whole Wheat Bread,390,24,45,12,7
-Chickpea Salad,370,18,35,16,7
-Avocado Toast with Egg,430,20,30,28,8
-Shrimp Pasta,550,35,50,20,4
-Turkey Sandwich,400,30,32,14,5
-Grilled Veggie Wrap,370,15,38,14,7
-Omelette with Spinach and Feta,390,28,6,28,3
-Greek Yogurt with Berries,300,20,25,10,2
-Banana Peanut Butter Smoothie,450,18,40,22,0
-Quinoa Bowl,500,25,50,20,6
-Baked Cod with Roasted Veggies,460,35,25,18,1
-Stuffed Bell Peppers,480,30,35,22,1
-Black Bean Tacos,410,22,40,14,7
-Protein Smoothie,250,20,10,8,2
-Chicken Caesar Wrap,530,35,38,24,4
-Egg Salad Sandwich,400,20,28,24,8
-Vegan Buddha Bowl,510,22,55,18,6
-Turkey Meatballs with Spaghetti,560,36,48,24,4
-Chicken and Sweet Potato,480,32,45,18,1
-Veggie Stir-Fry with Tofu,440,25,35,20,0
-Miso Soup with Noodles,390,16,42,12,7
-Cottage Cheese and Pineapple,280,22,22,10,2
-Avocado Tuna Salad,420,30,12,28,3
-Almond Butter Oatmeal,460,18,48,22,6
-Grilled Portobello Burger,430,20,35,20,0
-Chicken Fajitas,520,36,38,22,4
-Pesto Pasta with Veggies,490,22,55,18,6
-Eggplant Parmesan,470,24,40,22,0
-Spinach Ricotta Stuffed Shells,460,26,42,20,0
-Beef Tacos,530,34,30,28,4
-Sushi Bowl,490,28,45,18,1
-Pita with Hummus and Veggies,370,14,40,16,7
-BBQ Chicken Sandwich,540,38,45,20,4
-Tuna Pasta Salad,460,32,38,18,1
-Curry Chickpeas with Rice,500,20,55,18,6
-Mushroom Risotto,480,20,52,18,6
-Zucchini Noodles with Turkey,410,32,20,20,5
-Couscous Salad,390,14,44,14,7
-Falafel Wrap,460,18,42,22,0
-Tilapia with Mixed Veggies,440,36,28,18,1
-Turkey Chili,500,34,30,24,4
-Avocado Chicken Salad,470,32,15,30,3
-Ricotta and Spinach Wrap,450,20,35,22,0
-Tofu Scramble,390,22,12,28,3
-Chicken Shawarma Rice Bowl,530,36,42,24,4
-Vegetable Korma with Rice,520,20,55,20,6
-Egg Muffins with Cheese,300,20,8,22,9
+Grilled Chicken Breast with Quinoa,470,40,35,20,2
+Salmon with Brown Rice,520,38,45,22,2
+Tofu Stir Fry,410,22,40,18,6
+Beef Stew,360,28,20,16,6
+Lentil Soup with Whole Wheat Bread,390,24,45,12,1
+Chickpea Salad,370,18,35,16,6
+Avocado Toast with Egg,430,20,30,28,6
+Shrimp Pasta,550,35,50,20,9
+Turkey Sandwich,400,30,32,14,6
+Grilled Veggie Wrap,370,15,38,14,1
+Omelette with Spinach and Feta,390,28,6,28,6
+Greek Yogurt with Berries,300,20,25,10,6
+Banana Peanut Butter Smoothie,450,18,40,22,3
+Quinoa Bowl,500,25,50,20,3
+Baked Cod with Roasted Veggies,460,35,25,18,2
+Stuffed Bell Peppers,480,30,35,22,2
+Black Bean Tacos,410,22,40,14,6
+Protein Smoothie,250,20,10,8,6
+Chicken Caesar Wrap,530,35,38,24,2
+Egg Salad Sandwich,400,20,28,24,6
+Vegan Buddha Bowl,510,22,55,18,3
+Turkey Meatballs with Spaghetti,560,36,48,24,2
+Chicken and Sweet Potato,480,32,45,18,2
+Veggie Stir-Fry with Tofu,440,25,35,20,6
+Miso Soup with Noodles,390,16,42,12,1
+Cottage Cheese and Pineapple,280,22,22,10,6
+Avocado Tuna Salad,420,30,12,28,2
+Almond Butter Oatmeal,460,18,48,22,3
+Grilled Portobello Burger,430,20,35,20,6
+Chicken Fajitas,520,36,38,22,2
+Pesto Pasta with Veggies,490,22,55,18,3
+Eggplant Parmesan,470,24,40,22,3
+Spinach Ricotta Stuffed Shells,460,26,42,20,3
+Beef Tacos,530,34,30,28,2
+Sushi Bowl,490,28,45,18,3
+Pita with Hummus and Veggies,370,14,40,16,1
+BBQ Chicken Sandwich,540,38,45,20,2
+Tuna Pasta Salad,460,32,38,18,2
+Curry Chickpeas with Rice,500,20,55,18,3
+Mushroom Risotto,480,20,52,18,3
+Zucchini Noodles with Turkey,410,32,20,20,6
+Couscous Salad,390,14,44,14,1
+Falafel Wrap,460,18,42,22,3
+Tilapia with Mixed Veggies,440,36,28,18,2
+Turkey Chili,500,34,30,24,2
+Avocado Chicken Salad,470,32,15,30,2
+Ricotta and Spinach Wrap,450,20,35,22,6
+Tofu Scramble,390,22,12,28,6
+Chicken Shawarma Rice Bowl,530,36,42,24,2
+Vegetable Korma with Rice,520,20,55,20,3
+Egg Muffins with Cheese,300,20,8,22,6
+Scrambled eggs with whole wheat toast,350,20,30,15,6
+Peanut butter banana smoothie [Nut-free],420,12,45,18,1
+Grilled cheese sandwich with tomato soup,450,15,40,25,3
+McDonald's Big Mac with fries,1080,32,128,56,8
+Chicken teriyaki with white rice,580,42,75,12,9
+Tuna salad sandwich on wheat bread,480,30,35,22,2
+Instant ramen with egg and spinach,380,14,50,12,1
+Beef tacos with corn tortillas,520,34,40,28,2
+Greek yogurt with honey and granola,320,20,35,10,6
+Spaghetti with meatballs and garlic bread,720,38,85,30,0
+Oatmeal with raisins and walnuts,380,12,55,12,1
+Turkey club sandwich with avocado,550,36,35,30,2
+Vegetable stir fry with tofu [Vegan],420,22,35,18,6
+Cheese pizza (2 slices),580,24,60,28,9
+Grilled salmon with mashed potatoes,520,38,35,28,2
+Protein shake with banana and peanut butter,400,32,35,16,6
+Cereal with milk and banana [Nut-free],350,12,60,8,1
+Chicken caesar salad (no croutons) [Gluten-free],450,40,12,28,2
+PB&J sandwich on white bread,420,12,55,18,1
+Baked potato with cheese and broccoli,480,18,60,20,3
+Hard boiled eggs with avocado toast,420,20,30,25,6
+Beef burger with sweet potato fries,680,42,55,35,5
+Vegetable lasagna [Vegan],520,22,60,20,3
+Shrimp scampi with linguine,620,38,70,22,9
+Trail mix with dried fruit [Nut-free],320,8,40,16,1
+Egg fried rice with vegetables,450,18,50,15,1
+Grilled chicken wrap with ranch,520,38,35,28,2
+Cottage cheese with pineapple [Nut-free],280,22,22,10,6
+Pancakes with syrup and bacon,600,18,80,22,4
+Black bean soup with cornbread,480,22,60,15,3
+Chicken noodle soup with saltine crackers,320,18,35,10,6
+Bagel with cream cheese and lox,480,22,50,22,3
+Frozen chicken pot pie,620,22,55,35,5
+Vegetable omelette with hash browns,450,28,30,25,2
+Pork chops with applesauce and mashed potatoes,580,42,45,28,2
+Cobb salad with ranch dressing,520,38,12,35,2
+French toast with powdered sugar,550,18,70,22,4
+Beef stew with crusty bread,600,40,45,30,2
+Tofu scramble with toast [Vegan],380,22,35,18,6
+Waffles with butter and syrup,520,10,80,18,4
+Cheeseburger with onion rings,780,34,65,45,5
+Clam chowder in bread bowl,850,24,95,40,5
+Veggie burger with sweet potato fries [Vegan],520,22,60,22,3
+Pad Thai with shrimp,720,38,85,25,0
+Corned beef hash with fried eggs,650,42,35,40,7
+Chicken alfredo pasta,820,48,75,38,0
+Breakfast burrito with sausage,580,32,45,35,2
+Lentil curry with basmati rice [Vegan],520,24,75,12,4
+Fish sticks with tartar sauce,480,26,40,25,2
+BLT sandwich with mayo,550,22,35,38,2
+Pulled pork sandwich with coleslaw,680,42,65,30,0
+Mushroom risotto with parmesan,580,18,70,22,4
+Chicken quesadilla with sour cream,620,48,35,35,7
+Beef and barley soup with roll,520,34,45,22,2
+Avocado chicken salad sandwich,520,38,35,30,2
+Shrimp fried rice,580,32,65,22,9
+Baked ziti with garlic bread,750,36,85,32,0
+Tuna melt on rye bread,550,38,35,30,2
+Vegetable tempura with rice [Vegan],580,18,75,22,4
+Egg salad sandwich on wheat,480,28,35,28,2
+Philly cheesesteak sandwich,780,48,55,45,7
+Butternut squash soup with croutons,420,12,55,18,1
+Chicken wings with blue cheese,680,52,12,48,7
+Beef nachos with cheese sauce,850,34,65,52,5
+Spinach and ricotta stuffed shells,620,32,65,28,9
+Grilled vegetable panini,520,22,60,25,3
+Salisbury steak with gravy and mashed potatoes,720,52,55,38,7
+Chicken parmesan with spaghetti,880,62,85,38,0
+Miso soup with vegetable dumplings [Vegan],420,18,50,12,1
+Reuben sandwich with thousand island,680,38,55,40,5
+Pasta salad with Italian dressing,520,18,60,25,3
+Beef bulgogi with white rice,680,52,75,22,0
+Chicken pot pie,720,34,65,42,5
+Vegetable lo mein with tofu [Vegan],580,22,75,18,4
+Meatloaf with mashed potatoes,680,52,55,35,7
+Chicken fajitas with flour tortillas,620,58,45,28,7
+Clams linguine in white wine sauce,720,48,75,32,0
+Falafel pita with tahini sauce [Vegan],520,22,60,22,3
+Pulled chicken sandwich with bbq sauce,580,48,55,22,9
+Chicken and waffles with maple syrup,780,42,85,35,0
+Beef biryani with raita,720,38,90,28,0
+Vegetable fried rice with egg,520,22,65,18,3
+Cheese enchiladas with Mexican rice,680,34,75,32,0
+Tuna pasta salad with peas,580,38,55,25,9
+Pork tenderloin with roasted vegetables,620,52,30,35,7
+Avocado toast with poached eggs [Nut-free],480,22,35,30,2
+Shrimp cocktail with buttered rolls,550,42,45,25,2
+Lobster roll with chips,720,38,60,40,5
+Egg drop soup with wonton strips,380,18,45,12,1
+Chicken pad see ew with broccoli,680,48,75,22,0
+Beef pho with bean sprouts,580,42,65,18,9
+Vegetable samosas with chutney [Vegan],520,12,60,28,3
+Cheese quesadilla with guacamole,620,28,45,38,5
+Turkey meatballs with spaghetti,720,52,85,28,0
+Crab cakes with remoulade sauce,580,42,35,35,2
+Grilled vegetable platter with hummus [Vegan],480,18,45,28,3
+Pork fried rice with vegetables,620,38,65,25,9
+Chicken satay with peanut sauce,680,58,35,38,7
+Mushroom and Swiss burger,720,42,45,48,7
+Baked beans with cornbread,580,22,85,18,4
+Clam bake with drawn butter,850,52,65,48,7
+Vegetable curry with naan bread [Vegan],680,22,85,28,4
+Cheese fondue with bread cubes,720,28,60,48,5
+Lamb chops with mint jelly,680,58,15,48,7
+Chicken tikka masala with basmati rice,720,52,85,28,0
+Eggplant parmesan with marinara,580,22,65,32,9
+Pulled chicken sliders with coleslaw,620,48,55,28,9
+Beef empanadas with chimichurri,680,38,55,42,5
+Vegetable tempura udon soup [Vegan],580,18,85,22,4
+Chicken and dumplings,720,42,65,38,5
+Lobster bisque with oyster crackers,580,32,45,38,2
+Cheese and mushroom omelette,520,36,15,38,2
+Pork belly buns with hoisin sauce,680,38,65,35,5
+Vegetable stir fry with cashews,520,22,45,32,2
+Beef kabobs with pita bread,680,58,45,35,7
+Chicken cordon bleu with roasted potatoes,780,62,55,48,7
+Mushroom and goat cheese tart,680,22,60,48,5
+Clam strips with french fries,720,38,75,38,5
+Vegetable lasagna with garlic bread [Vegan],720,32,85,32,0
+Chicken and sausage gumbo,780,52,45,48,7
+Beef wellington with roasted carrots,880,62,55,58,7
+Tofu banh mi sandwich [Vegan],580,28,65,25,9
+Cheese and charcuterie board,720,36,15,58,7
+Lamb kebabs with tzatziki sauce,680,58,25,48,7
+Chicken piccata with angel hair pasta,720,58,75,32,0
+Vegetable pot pie with puff pastry [Vegan],680,22,65,42,5
+Pork schnitzel with spaetzle,780,58,65,42,7
+Crab rangoon with sweet and sour sauce,580,22,65,32,9
+Egg and cheese breakfast sandwich,520,32,30,32,2
+Gluten-free pasta with marinara sauce [Vegan][Nut-free][Gluten-free],420,12,75,8,1
+Rice bowl with black beans and salsa [Vegan][Nut-free][Gluten-free],480,18,85,10,4
+Baked potato with vegan chili [Vegan][Nut-free][Gluten-free],520,22,75,12,4
+Quinoa salad with cucumber and lemon [Vegan][Nut-free][Gluten-free],380,14,55,12,1
+Grilled portobello mushrooms with rice [Vegan][Nut-free][Gluten-free],350,12,45,15,1
+Stir-fried tofu with rice noodles [Vegan][Nut-free][Gluten-free],450,28,60,12,3
+Lentil soup with gluten-free bread [Vegan][Nut-free][Gluten-free],380,22,55,8,1
+Roasted vegetable medley with quinoa [Vegan][Nut-free][Gluten-free],420,15,65,12,1
+Chickpea curry with basmati rice [Vegan][Nut-free][Gluten-free],580,28,85,15,4
+Sweet potato and black bean tacos (corn tortillas) [Vegan][Nut-free][Gluten-free],520,22,75,18,4
+Vegan sushi rolls with tamari [Vegan][Nut-free][Gluten-free],480,18,85,12,4
+Mashed cauliflower with vegan gravy [Vegan][Nut-free][Gluten-free],320,12,35,15,1
+Zucchini noodles with pesto (nut-free) [Vegan][Nut-free][Gluten-free],380,15,35,22,6
+Sunflower seed butter sandwich (GF bread) [Vegan][Nut-free][Gluten-free],450,18,55,22,3
+Rice paper veggie rolls with peanut-free sauce [Vegan][Nut-free][Gluten-free],350,12,60,8,1
+Baked falafel with tahini (GF pita) [Vegan][Nut-free][Gluten-free],580,28,75,22,9
+Coconut milk curry with vegetables [Vegan][Nut-free][Gluten-free],520,18,65,28,3
+Roasted beet and quinoa salad [Vegan][Nut-free][Gluten-free],420,16,60,15,1
+Vegan chili with cornbread (GF) [Vegan][Nut-free][Gluten-free],580,28,85,18,4
+Stuffed bell peppers with lentils [Vegan][Nut-free][Gluten-free],450,22,65,12,3
+Polenta with mushroom ragout [Vegan][Nut-free][Gluten-free],520,18,65,22,3
+Veggie stir-fry with tamari (GF) [Vegan][Nut-free][Gluten-free],480,22,65,15,3
+Butternut squash risotto (GF) [Vegan][Nut-free][Gluten-free],550,12,85,18,4
+Chia pudding with coconut milk [Vegan][Nut-free][Gluten-free],380,12,45,22,1
+Vegan lentil loaf with mashed potatoes [Vegan][Nut-free][Gluten-free],580,32,75,18,9
