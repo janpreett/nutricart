@@ -119,19 +119,18 @@ def test_profile_creation_integration(client_with_test_db):
     headers = {"Authorization": f"Bearer {token}"}
     response = client_with_test_db.post("/profile", json=profile_data, headers=headers)
     
-    if response.status_code != 201:
+    if response.status_code != 200:
         print(f"Response status: {response.status_code}")
         print(f"Response body: {response.text}")
     
-    # Profile creation might fail if profile already exists, so accept both 201 and 400
-    assert response.status_code in [201, 400]
+    # Profile endpoint is an upsert operation that returns 200 for both create and update
+    assert response.status_code == 200
     
-    if response.status_code == 201:
-        data = response.json()
-        assert data["age"] == 28
-        assert data["weight"] == 75.0
-        assert data["height"] == 180.0
-        assert data["goal"] == "muscle_gain"
+    data = response.json()
+    assert data["age"] == 28
+    assert data["weight"] == 75.0
+    assert data["height"] == 180.0
+    assert data["goal"] == "muscle_gain"
 
 def test_profile_creation_unauthorized(client_with_test_db):
     profile_data = {

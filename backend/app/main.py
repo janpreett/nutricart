@@ -258,12 +258,12 @@ def upsert_profile(
     db_profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
 
     if db_profile:                              # update
-        for k, v in data.dict().items():
+        for k, v in data.model_dump().items():
             setattr(db_profile, k, v)
         db.commit(); db.refresh(db_profile)
         return db_profile
 
-    new_prof = Profile(user_id=current_user.id, **data.dict())
+    new_prof = Profile(user_id=current_user.id, **data.model_dump())
     db.add(new_prof); db.commit(); db.refresh(new_prof)
     return new_prof
 
@@ -307,6 +307,6 @@ def swap_meal(
 # ── Contact ────────────────────────────────────────────────────────────────
 @app.post("/contact", response_model=ContactResponse, status_code=201)
 def create_contact(contact: ContactCreate, db: Session = Depends(get_db)):
-    db_contact = Contact(**contact.dict())
+    db_contact = Contact(**contact.model_dump())
     db.add(db_contact); db.commit(); db.refresh(db_contact)
     return db_contact
