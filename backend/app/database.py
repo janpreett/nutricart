@@ -1,14 +1,3 @@
-# backend/app/database.py
-"""
-SQLAlchemy models + ML-powered meal-plan generator
-=================================================
-
-* SQLite file lives at ./nutricart.db
-* ML artefacts:  scaler.pkl, meal_cluster_model.pkl, recipes_with_clusters.csv
-  -- the recipes CSV **must** contain:  
-    name, calories, protein, carbs, fat, price, cluster
-"""
-
 from __future__ import annotations
 
 # ---------- stdlib ---------------------------------------------------------
@@ -42,7 +31,6 @@ SessionLocal = sessionmaker(
 )
 Base = declarative_base()
 
-
 # ---------------------------------------------------------------------------
 # Custom JSON type (works with SQLite which lacks native JSON)
 # ---------------------------------------------------------------------------
@@ -55,7 +43,6 @@ class JSON(TypeDecorator):
 
     def process_result_value(self, value, dialect):
         return json.loads(value) if value is not None else None
-
 
 # ---------------------------------------------------------------------------
 # ORM MODELS
@@ -137,7 +124,6 @@ def init_db() -> None:
     """Create tables on first start-up."""
     Base.metadata.create_all(bind=engine)
 
-
 # ---------------------------------------------------------------------------
 # ML artefacts & recipe catalogue
 # ---------------------------------------------------------------------------
@@ -145,8 +131,7 @@ def init_db() -> None:
 scaler  = joblib.load("scaler.pkl")               # fitted on 5 columns
 model   = joblib.load("meal_cluster_model.pkl")   # KMeans(n_clusters=10)
 recipes = pd.read_csv("recipes_with_clusters.csv")
-# columns needed: name calories protein carbs fat price cluster
-
+# columns: name calories protein carbs fat price cluster
 
 # ---------------------------------------------------------------------------
 # Helper functions
@@ -159,13 +144,12 @@ def calculate_bmr(age: int, weight: float, height: float) -> float:
 
 def adjust_tdee(bmr: float, goal: str) -> float:
     """Apply sedentary multiplier and goal offset."""
-    tdee = bmr * 1.2  # sedentary factor
+    tdee = bmr * 1.2
     if goal == "lose":
         tdee -= 500
     elif goal == "gain":
         tdee += 300
     return tdee
-
 
 # ---------------------------------------------------------------------------
 # MEAL-PLAN GENERATION
@@ -175,86 +159,124 @@ def generate_meal_plan(profile: dict) -> dict:
     """
     High-level steps
     ----------------
-    1.   Compute per-meal calorie & macro targets
-    2.   Include **price target** so scaler sees 5 features
-    3.   Choose closest K-Means cluster
-    4.   Filter pool by cluster, diet, and budget
-    5.   Sample three meals per day (fallback to static catalogue)
+    1. Compute per-meal calorie & macro targets
+    2. Include **price target** so scaler sees 5 features
+    3. Choose closest K-Means cluster
+    4. Filter pool by cluster, diet, and budget
+    5. Sample three meals per day (fallback to static catalogue)
     """
 
-    # -- 1 ▸ energy & macros -------------------------------------------------
+    # 1 ▸ energy & macros ----------------------------------------------------
     bmr  = calculate_bmr(profile["age"], profile["weight"], profile["height"])
     tdee = adjust_tdee(bmr, profile["goal"])
 
     kcal_target     = tdee / 3
-    protein_target  = (0.30 * tdee / 4) / 3   # 30 % kcal → g, ÷3 meals
+    protein_target  = (0.30 * tdee / 4) / 3
     carbs_target    = (0.40 * tdee / 4) / 3
     fat_target      = (0.30 * tdee / 9) / 3
 
-    # -- 2 ▸ price target (fifth feature) -----------------------------------
+    # 2 ▸ price target -------------------------------------------------------
     weekly_budget      = profile.get("budget")
     avg_price_per_meal = (
-        weekly_budget / 21  # 7 days × 3 meals
-        if weekly_budget
-        else recipes["price"].mean()
+        weekly_budget / 21 if weekly_budget else recipes["price"].mean()
     )
 
-    # five-dimensional target vector
     target = np.array([[
-        kcal_target,
-        protein_target,
-        carbs_target,
-        fat_target,
-        avg_price_per_meal
+        kcal_target, protein_target, carbs_target, fat_target, avg_price_per_meal
     ]])
-
     scaled_target = scaler.transform(target)
 
-    # -- 3 ▸ nearest cluster -------------------------------------------------
-    dists   = [np.linalg.norm(scaled_target - c) for c in model.cluster_centers_]
-    cluster = int(np.argmin(dists))
-
+    # 3 ▸ nearest cluster ----------------------------------------------------
+    cluster = int(np.argmin([
+        np.linalg.norm(scaled_target - c) for c in model.cluster_centers_
+    ]))
     pool = recipes[recipes.cluster == cluster].copy()
 
-    # -- 4a ▸ diet filter ----------------------------------------------------
+    # 4a ▸ diet filter -------------------------------------------------------
     for dr in profile.get("dietary_restrictions") or []:
         pool = pool[~pool.name.str.contains(dr, case=False, na=False)]
 
-    # -- 4b ▸ budget filter (±20 % wiggle) ----------------------------------
+    # 4b ▸ budget filter (±20 % wiggle) -------------------------------------
     budget_ceiling = avg_price_per_meal * 1.20
     pool = pool[pool.price <= budget_ceiling]
 
-    # -- 5 ▸ daily sampling --------------------------------------------------
+    # 5 ▸ daily sampling -----------------------------------------------------
     weekly_plan: list[dict] = []
-    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    for day in days:
-        chosen_recs = (
+    for day in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]:
+        chosen = (
             pool.sample(3).to_dict("records")
-            if len(pool) >= 3
-            else random.sample(MEAL_CATALOG, 3)
+            if len(pool) >= 3 else random.sample(MEAL_CATALOG, 3)
         )
         weekly_plan.append({
-            "day":   day,
+            "day": day,
             "meals": [
-                {
-                    "name":     r["name"],
-                    "calories": r["calories"],
-                    "price":    r["price"],
-                } for r in chosen_recs
+                {"name": m["name"], "calories": m["calories"], "price": m["price"]}
+                for m in chosen
             ]
         })
 
     return {
-        "user_id":             profile["user_id"],
-        "weekly_budget":       weekly_budget,
-        "avg_price_per_meal":  round(avg_price_per_meal, 2),
+        "user_id":              profile["user_id"],
+        "weekly_budget":        weekly_budget,
+        "avg_price_per_meal":   round(avg_price_per_meal, 2),
         "dietary_restrictions": profile.get("dietary_restrictions", []),
-        "weekly_plan":         weekly_plan,
+        "weekly_plan":          weekly_plan,
     }
 
+# ---------------------------------------------------------------------------
+# ONE-MEAL PICKER  – used by /swap_meal
+# ---------------------------------------------------------------------------
+
+def _py(v):
+    """Convert pandas / NumPy scalars to regular Python types."""
+    if pd.isna(v):
+        return None
+    if isinstance(v, (np.generic,)):
+        return v.item()
+    return v
+
+
+def pick_random_meal(profile: dict) -> dict:
+    """Return ONE meal that fits the user’s cluster, diet & budget."""
+    bmr  = calculate_bmr(profile["age"], profile["weight"], profile["height"])
+    tdee = adjust_tdee(bmr, profile["goal"])
+
+    target = np.array([[
+        tdee / 3,
+        (0.30 * tdee / 4) / 3,
+        (0.40 * tdee / 4) / 3,
+        (0.30 * tdee / 9) / 3,
+        (profile.get("budget") or recipes["price"].mean()) / 21,
+    ]])
+    cluster = int(np.argmin([
+        np.linalg.norm(scaler.transform(target) - c)
+        for c in model.cluster_centers_
+    ]))
+
+    pool = recipes[recipes.cluster == cluster].copy()
+
+    for dr in profile.get("dietary_restrictions") or []:
+        pool = pool[~pool.name.str.contains(dr, case=False, na=False)]
+
+    if profile.get("budget"):
+        pool = pool[pool.price <= profile["budget"] / 21]
+
+    if pool.empty:
+        choice = random.choice(MEAL_CATALOG)
+        return {**choice, "protein": None, "carbs": None, "fat": None}
+
+    m = pool.sample(1).iloc[0]
+    return {
+        "name":     str(m.name),
+        "calories": int(_py(m.calories)),
+        "price":    float(_py(m.price)),
+        "protein":  _py(getattr(m, "protein", None)),
+        "carbs":    _py(getattr(m, "carbs",   None)),
+        "fat":      _py(getattr(m, "fat",     None)),
+    }
 
 # ---------------------------------------------------------------------------
-# Static fallback catalogue (used when recipe pool is too small)
+# Static fallback catalogue
 # ---------------------------------------------------------------------------
 
 MEAL_CATALOG = [

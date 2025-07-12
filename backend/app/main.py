@@ -1,10 +1,4 @@
-# backend/app/main.py
-from fastapi import (
-    FastAPI,
-    HTTPException,
-    Depends,
-    status,
-)
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, ConfigDict
@@ -14,30 +8,22 @@ from typing import Optional, List
 from contextlib import asynccontextmanager
 
 from app.database import (
-    init_db,
-    SessionLocal,
-    Profile,
-    User,
-    Contact,
-    generate_meal_plan,
+    init_db, SessionLocal, Profile, User, Contact,
+    generate_meal_plan, pick_random_meal
 )
 from app.auth import (
-    authenticate_user,
-    create_access_token,
-    get_password_hash,
-    get_current_active_user,
-    get_db,
-    get_user_by_email,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
+    authenticate_user, create_access_token,
+    get_password_hash, get_current_active_user,
+    get_db, get_user_by_email, ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
 # ── Schemas ────────────────────────────────────────────────────────────────
 class ProfileCreate(BaseModel):
-    age:    int
+    age: int
     weight: float
     height: float
-    goal:   str
-    budget:               Optional[float]     = None
+    goal: str
+    budget: Optional[float] = None
     dietary_restrictions: Optional[List[str]] = []
 
 class ProfileResponse(ProfileCreate):
@@ -46,54 +32,59 @@ class ProfileResponse(ProfileCreate):
 
 class UserRegister(BaseModel):
     first_name: str
-    last_name:  str
-    email:      EmailStr
-    password:   str
+    last_name: str
+    email: EmailStr
+    password: str
 
 class UserLogin(BaseModel):
-    email:    EmailStr
+    email: EmailStr
     password: str
 
 class Token(BaseModel):
     access_token: str
-    token_type:   str
+    token_type: str
 
 class UserResponse(BaseModel):
-    id:          int
-    first_name:  str
-    last_name:   str
-    email:       str
-    is_active:   bool
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    is_active: bool
     is_verified: bool
     model_config = ConfigDict(from_attributes=True)
 
 class ContactCreate(BaseModel):
-    first_name:  str
-    last_name:   str
-    email:       EmailStr
-    phone:       Optional[str] = None
-    message:     str
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    message: str
     sms_consent: bool = False
 
 class ContactResponse(ContactCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
+# —— new schema for swapping one meal ——
+class SwapRequest(BaseModel):
+    day_index:  int  # 0-based (Mon=0)
+    meal_index: int  # 0,1,2
+
 # ── App setup ──────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()                      # make sure tables exist before startup
+    init_db()
     yield
 
 app = FastAPI(
     title="NutriCart API",
     lifespan=lifespan,
-    openapi_url="/openapi.json",   # served at the root of the container
+    openapi_url="/openapi.json",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],           # open CORS (tighten in production)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -104,7 +95,7 @@ app.add_middleware(
 async def read_root():
     return {"message": "NutriCart backend up!"}
 
-# ── Auth endpoints ────────────────────────────────────────────────────────
+# ── Auth ───────────────────────────────────────────────────────────────────
 @app.post("/auth/register", response_model=UserResponse)
 def register_user(user: UserRegister, db: Session = Depends(get_db)):
     if get_user_by_email(db, user.email):
@@ -139,51 +130,37 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
 def get_current_user_info(current: User = Depends(get_current_active_user)):
     return current
 
-# ── Profile endpoints (POST is now up-sert) ───────────────────────────────
+# ── Profile (POST = up-sert) ───────────────────────────────────────────────
 @app.post("/profile", response_model=ProfileResponse)
 def upsert_profile(
     data: ProfileCreate,
     current_user: User = Depends(get_current_active_user),
 ):
-    """
-    Creates the profile on first call; updates it on subsequent calls.
-    Front-end keeps sending POST /profile – no changes needed there.
-    """
     db: Session = SessionLocal()
-
     db_profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
 
-    if db_profile:
-        # ---------- UPDATE path --------------------------------------------
-        for field, value in data.dict().items():
-            setattr(db_profile, field, value)
-        db.commit()
-        db.refresh(db_profile)
+    if db_profile:                              # update
+        for k, v in data.dict().items():
+            setattr(db_profile, k, v)
+        db.commit(); db.refresh(db_profile)
         return db_profile
 
-    # ---------- CREATE path ------------------------------------------------
-    new_profile = Profile(
-        user_id=current_user.id,
-        **data.dict(),
-    )
-    db.add(new_profile)
-    db.commit()
-    db.refresh(new_profile)
-    return new_profile
+    new_prof = Profile(user_id=current_user.id, **data.dict())
+    db.add(new_prof); db.commit(); db.refresh(new_prof)
+    return new_prof
 
 @app.get("/profile", response_model=ProfileResponse)
 def read_profile(current_user: User = Depends(get_current_active_user)):
     db = SessionLocal()
-    profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
-    if not profile:
+    prof = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+    if not prof:
         raise HTTPException(status_code=404, detail="Profile not found")
-    return profile
+    return prof
 
-# ── Meal-plan endpoint ────────────────────────────────────────────────────
+# ── Meal-plan & swap ───────────────────────────────────────────────────────
 @app.get("/generate_plan/{user_id}")
 def get_plan(
-    user_id: int,
-    current_user: User = Depends(get_current_active_user),
+    user_id: int, current_user: User = Depends(get_current_active_user)
 ):
     if user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
@@ -191,22 +168,27 @@ def get_plan(
     profile = db.query(Profile).filter(Profile.user_id == user_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
-
     plan = generate_meal_plan(profile.__dict__)
     return JSONResponse(content=plan)
 
-# ── Contact endpoint ──────────────────────────────────────────────────────
+@app.post("/swap_meal/{user_id}")
+def swap_meal(
+    user_id: int, req: SwapRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorised")
+    db = SessionLocal()
+    profile = db.query(Profile).filter(Profile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    meal = pick_random_meal(profile.__dict__)
+    # frontend performs the in-memory replacement
+    return meal
+
+# ── Contact ────────────────────────────────────────────────────────────────
 @app.post("/contact", response_model=ContactResponse, status_code=201)
 def create_contact(contact: ContactCreate, db: Session = Depends(get_db)):
-    db_contact = Contact(
-        first_name=contact.first_name,
-        last_name=contact.last_name,
-        email=contact.email,
-        phone=contact.phone,
-        message=contact.message,
-        sms_consent=contact.sms_consent,
-    )
-    db.add(db_contact)
-    db.commit()
-    db.refresh(db_contact)
+    db_contact = Contact(**contact.dict())
+    db.add(db_contact); db.commit(); db.refresh(db_contact)
     return db_contact
