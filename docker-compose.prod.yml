@@ -1,4 +1,5 @@
-
+# docker-compose.prod.yml
+version: '3.8'
 
 services:
   backend:
@@ -30,14 +31,14 @@ services:
       dockerfile: Dockerfile.prod
     container_name: nutricart-frontend-prod
     ports:
-      - "4180:4173"
+      - "5173:4173"
     environment:
       - VITE_API_URL=http://backend:8000
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4173"]
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -48,7 +49,6 @@ services:
 
 volumes:
   backend_data:
-    driver: local
 
 networks:
   nutricart-network:

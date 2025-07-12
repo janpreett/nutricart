@@ -1,28 +1,43 @@
 import pandas as pd
+import joblib
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-import joblib
 
-# Load the dataset
-data = pd.read_csv('recipes.csv')
+# --- Configuration ---
+INPUT_CSV       = 'recipes.csv'
+OUTPUT_CSV      = 'recipes_with_clusters.csv'
+SCALER_PATH     = 'scaler.pkl'
+MODEL_PATH      = 'meal_cluster_model.pkl'
+N_CLUSTERS      = 10
+RANDOM_STATE    = 42
 
-# Select relevant features
-features = data[['calories', 'protein', 'carbs', 'fat']].fillna(0)
+def main():
+    # 1) Load the full recipes dataset (must include a 'price' column)
+    df = pd.read_csv(INPUT_CSV)
 
-# Preprocess: Scale features
-scaler = StandardScaler()
-scaled_features = scaler.fit_transform(features)
+    # 2) Select features for clustering: nutrition + price
+    features = df[['calories', 'protein', 'carbs', 'fat', 'price']].fillna(0)
 
-# Train KMeans model
-model = KMeans(n_clusters=10, random_state=42, n_init=10)
-model.fit(scaled_features)
+    # 3) Scale features
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(features)
 
-# Assign clusters to recipes
-data['cluster'] = model.predict(scaled_features)
+    # 4) Train KMeans model
+    model = KMeans(n_clusters=N_CLUSTERS, random_state=RANDOM_STATE, n_init=10)
+    model.fit(scaled_features)
 
-# Save the scaler, model, and updated recipes
-joblib.dump(scaler, 'scaler.pkl')
-joblib.dump(model, 'meal_cluster_model.pkl')
-data.to_csv('recipes_with_clusters.csv', index=False)
+    # 5) Assign cluster labels back to DataFrame
+    df['cluster'] = model.predict(scaled_features)
 
-print("Files generated successfully.")
+    # 6) Save artifacts and updated CSV
+    joblib.dump(scaler, SCALER_PATH)
+    joblib.dump(model, MODEL_PATH)
+    df.to_csv(OUTPUT_CSV, index=False)
+
+    print("✅ Generated files:")
+    print(f"   • {SCALER_PATH}")
+    print(f"   • {MODEL_PATH}")
+    print(f"   • {OUTPUT_CSV}")
+
+if __name__ == '__main__':
+    main()

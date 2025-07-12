@@ -1,11 +1,14 @@
+version: "3.8"
+
 services:
   backend:
-    image: nutricart-backend-test
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: nutricart-backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
       - backend_data:/app/data
     environment:
       - PYTHONPATH=/app
@@ -24,19 +27,20 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # build‐time API URL (used by Vite)
+        VITE_API_URL: "http://localhost:8000"
     container_name: nutricart-frontend
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "5173:5173"   # <-- map host 5173 → container 5173
     environment:
+      # runtime API URL (just in case)
       - VITE_API_URL=http://localhost:8000
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -45,7 +49,7 @@ services:
     networks:
       - nutricart-network
 
-  # Backend test service
+  # (your test services unchanged)
   backend-test:
     build:
       context: ./backend
@@ -58,15 +62,15 @@ services:
       - PYTHONPATH=/app
       - DATABASE_URL=sqlite:///./test.db
       - PYTEST_ARGS=${PYTEST_ARGS:---verbose}
-    command: pytest tests ${PYTEST_ARGS:---verbose}
+    command: pytest tests ${PYTEST_ARGS}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - nutricart-network
     profiles:
       - test
 
-  # Test with coverage service
   backend-test-coverage:
     build:
       context: ./backend
@@ -80,7 +84,8 @@ services:
       - DATABASE_URL=sqlite:///./test.db
     command: pytest tests --cov=app --cov-report=html --cov-report=term --verbose
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - nutricart-network
     profiles:

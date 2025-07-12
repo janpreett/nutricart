@@ -1,172 +1,269 @@
-from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, Boolean
-from sqlalchemy.orm import sessionmaker, declarative_base
-import random
-import joblib
-import pandas as pd
-import numpy as np
+# backend/app/database.py
+"""
+SQLAlchemy models + ML-powered meal-plan generator
+=================================================
+
+* SQLite file lives at ./nutricart.db
+* ML artefacts:  scaler.pkl, meal_cluster_model.pkl, recipes_with_clusters.csv
+  -- the recipes CSV **must** contain:  
+    name, calories, protein, carbs, fat, price, cluster
+"""
+
+from __future__ import annotations
+
+# ---------- stdlib ---------------------------------------------------------
 import json
-from sqlalchemy.types import TypeDecorator, TEXT
-from datetime import datetime, timezone
+import random
+from   datetime import datetime, timezone
 
-# Custom JSON type for SQLite
-class JSON(TypeDecorator):
-    impl = TEXT
+# ---------- 3rd-party ------------------------------------------------------
+import joblib
+import numpy  as np
+import pandas as pd
+from   sqlalchemy import (
+    create_engine, Column, Integer, Float, String,
+    DateTime, Boolean
+)
+from   sqlalchemy.orm  import sessionmaker, declarative_base
+from   sqlalchemy.types import TypeDecorator, TEXT
 
-    def process_bind_param(self, value, dialect):
-        if value is not None:
-            value = json.dumps(value)
-        return value
-
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            value = json.loads(value)
-        return value
+# ---------------------------------------------------------------------------
+# DB INITIALISATION
+# ---------------------------------------------------------------------------
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./nutricart.db"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False}
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
 Base = declarative_base()
 
-# Define Profile model
+
+# ---------------------------------------------------------------------------
+# Custom JSON type (works with SQLite which lacks native JSON)
+# ---------------------------------------------------------------------------
+
+class JSON(TypeDecorator):
+    impl = TEXT  # store as TEXT
+
+    def process_bind_param(self, value, dialect):
+        return json.dumps(value) if value is not None else None
+
+    def process_result_value(self, value, dialect):
+        return json.loads(value) if value is not None else None
+
+
+# ---------------------------------------------------------------------------
+# ORM MODELS
+# ---------------------------------------------------------------------------
+
 class Profile(Base):
     __tablename__ = "profiles"
-    user_id               = Column(Integer, primary_key=True, index=True)
-    age                   = Column(Integer, nullable=False)
-    weight                = Column(Float,   nullable=False)
-    height                = Column(Float,   nullable=False)
-    goal                  = Column(String,  nullable=False)
-    budget                = Column(Float,   nullable=True)        # new
-    dietary_restrictions  = Column(JSON,    nullable=True)        # new
 
-# Define User model
+    user_id              = Column(Integer, primary_key=True, index=True)
+    age                  = Column(Integer, nullable=False)
+    weight               = Column(Float,   nullable=False)  # kg
+    height               = Column(Float,   nullable=False)  # cm
+    goal                 = Column(String,  nullable=False)  # maintain | lose | gain
+    budget               = Column(Float,   nullable=True)   # weekly $ budget
+    dietary_restrictions = Column(JSON,    nullable=True)   # list[str]
+
+
 class User(Base):
     __tablename__ = "users"
-    id             = Column(Integer, primary_key=True, index=True)
-    first_name     = Column(String, nullable=False)
-    last_name      = Column(String, nullable=False)
-    email          = Column(String, unique=True, index=True, nullable=False)
-    hashed_password= Column(String, nullable=False)
-    is_active      = Column(Boolean, default=True)
-    is_verified    = Column(Boolean, default=False)
-    created_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at     = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-# Define MealPlan model
+    id              = Column(Integer, primary_key=True, index=True)
+    first_name      = Column(String, nullable=False)
+    last_name       = Column(String, nullable=False)
+    email           = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active       = Column(Boolean, default=True)
+    is_verified     = Column(Boolean, default=False)
+    created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at      = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
 class MealPlan(Base):
     __tablename__ = "mealPlans"
-    id       = Column(Integer, primary_key=True, index=True)
-    name     = Column(String, nullable=True)
-    user_id  = Column(Integer, nullable=True)
-    plan_json= Column(JSON, nullable=True)
-    plan_ids = Column(String, nullable=True)  # Comma-separated recipe IDs
-    created_at= Column(DateTime, nullable=True)
 
-# Define Meal model
+    id         = Column(Integer, primary_key=True, index=True)
+    name       = Column(String, nullable=True)
+    user_id    = Column(Integer, nullable=True)
+    plan_json  = Column(JSON, nullable=True)
+    plan_ids   = Column(String, nullable=True)
+    created_at = Column(DateTime, nullable=True)
+
+
 class Meal(Base):
     __tablename__ = "meals"
+
     id             = Column(Integer, primary_key=True, index=True)
     name           = Column(String, nullable=True)
     ingredient_ids = Column(String, nullable=True)
     instructions   = Column(String, nullable=True)
     created_at     = Column(DateTime, nullable=True)
 
-# Define Contact model
+
 class Contact(Base):
     __tablename__ = "contacts"
+
     id          = Column(Integer, primary_key=True, index=True)
-    first_name  = Column(String, nullable=False)
-    last_name   = Column(String, nullable=False)
-    email       = Column(String, nullable=False)
-    phone       = Column(String, nullable=True)
-    message     = Column(String, nullable=False)
+    first_name  = Column(String,  nullable=False)
+    last_name   = Column(String,  nullable=False)
+    email       = Column(String,  nullable=False)
+    phone       = Column(String,  nullable=True)
+    message     = Column(String,  nullable=False)
     sms_consent = Column(Boolean, default=False)
     created_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-# Define Ingredient model
+
 class Ingredient(Base):
     __tablename__ = "ingredients"
-    id          = Column(Integer, primary_key=True, index=True)
-    name        = Column(String, nullable=True)
-    created_at  = Column(DateTime, nullable=True)
 
-def init_db():
+    id         = Column(Integer, primary_key=True, index=True)
+    name       = Column(String, nullable=True)
+    created_at = Column(DateTime, nullable=True)
+
+
+def init_db() -> None:
+    """Create tables on first start-up."""
     Base.metadata.create_all(bind=engine)
 
-# Load ML artifacts
-scaler  = joblib.load('scaler.pkl')
-model   = joblib.load('meal_cluster_model.pkl')
-recipes = pd.read_csv('recipes_with_clusters.csv')
 
-def calculate_bmr(age, weight, height):
+# ---------------------------------------------------------------------------
+# ML artefacts & recipe catalogue
+# ---------------------------------------------------------------------------
+
+scaler  = joblib.load("scaler.pkl")               # fitted on 5 columns
+model   = joblib.load("meal_cluster_model.pkl")   # KMeans(n_clusters=10)
+recipes = pd.read_csv("recipes_with_clusters.csv")
+# columns needed: name calories protein carbs fat price cluster
+
+
+# ---------------------------------------------------------------------------
+# Helper functions
+# ---------------------------------------------------------------------------
+
+def calculate_bmr(age: int, weight: float, height: float) -> float:
+    """Mifflin–St Jeor BMR (male)."""
     return 10 * weight + 6.25 * height - 5 * age + 5
 
-def adjust_tdee(bmr, goal):
-    tdee = bmr * 1.2
+
+def adjust_tdee(bmr: float, goal: str) -> float:
+    """Apply sedentary multiplier and goal offset."""
+    tdee = bmr * 1.2  # sedentary factor
     if goal == "lose":
-        return tdee - 500
-    if goal == "gain":
-        return tdee + 300
+        tdee -= 500
+    elif goal == "gain":
+        tdee += 300
     return tdee
 
-def generate_meal_plan(profile_dict):
-    # extract & compute
-    bmr  = calculate_bmr(profile_dict["age"], profile_dict["weight"], profile_dict["height"])
-    tdee = adjust_tdee(bmr, profile_dict["goal"])
 
-    # macros & per-meal targets
-    total_protein_g = (0.3 * tdee) / 4
-    total_carbs_g   = (0.4 * tdee) / 4
-    total_fat_g     = (0.3 * tdee) / 9
+# ---------------------------------------------------------------------------
+# MEAL-PLAN GENERATION
+# ---------------------------------------------------------------------------
+
+def generate_meal_plan(profile: dict) -> dict:
+    """
+    High-level steps
+    ----------------
+    1.   Compute per-meal calorie & macro targets
+    2.   Include **price target** so scaler sees 5 features
+    3.   Choose closest K-Means cluster
+    4.   Filter pool by cluster, diet, and budget
+    5.   Sample three meals per day (fallback to static catalogue)
+    """
+
+    # -- 1 ▸ energy & macros -------------------------------------------------
+    bmr  = calculate_bmr(profile["age"], profile["weight"], profile["height"])
+    tdee = adjust_tdee(bmr, profile["goal"])
+
+    kcal_target     = tdee / 3
+    protein_target  = (0.30 * tdee / 4) / 3   # 30 % kcal → g, ÷3 meals
+    carbs_target    = (0.40 * tdee / 4) / 3
+    fat_target      = (0.30 * tdee / 9) / 3
+
+    # -- 2 ▸ price target (fifth feature) -----------------------------------
+    weekly_budget      = profile.get("budget")
+    avg_price_per_meal = (
+        weekly_budget / 21  # 7 days × 3 meals
+        if weekly_budget
+        else recipes["price"].mean()
+    )
+
+    # five-dimensional target vector
     target = np.array([[
-        tdee/3,
-        total_protein_g/3,
-        total_carbs_g/3,
-        total_fat_g/3
+        kcal_target,
+        protein_target,
+        carbs_target,
+        fat_target,
+        avg_price_per_meal
     ]])
+
     scaled_target = scaler.transform(target)
 
-    # pick closest cluster
-    dists = [np.linalg.norm(scaled_target - c) for c in model.cluster_centers_]
+    # -- 3 ▸ nearest cluster -------------------------------------------------
+    dists   = [np.linalg.norm(scaled_target - c) for c in model.cluster_centers_]
     cluster = int(np.argmin(dists))
 
-    # filter recipes by cluster
     pool = recipes[recipes.cluster == cluster].copy()
 
-    # apply dietary filters
-    dietary = profile_dict.get("dietary_restrictions") or []
-    for dr in dietary:
+    # -- 4a ▸ diet filter ----------------------------------------------------
+    for dr in profile.get("dietary_restrictions") or []:
         pool = pool[~pool.name.str.contains(dr, case=False, na=False)]
 
-    # sample or fallback
-    weekly = []
-    for day in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]:
-        if len(pool) >= 3:
-            chosen = pool.sample(3).to_dict('records')
-        else:
-            chosen = pool.to_dict('records')
-            chosen += random.sample(MEAL_CATALOG, 3 - len(chosen))
-        weekly.append({
-            "day": day,
-            "meals": [{"name": m["name"], "calories": m["calories"]} for m in chosen]
+    # -- 4b ▸ budget filter (±20 % wiggle) ----------------------------------
+    budget_ceiling = avg_price_per_meal * 1.20
+    pool = pool[pool.price <= budget_ceiling]
+
+    # -- 5 ▸ daily sampling --------------------------------------------------
+    weekly_plan: list[dict] = []
+    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    for day in days:
+        chosen_recs = (
+            pool.sample(3).to_dict("records")
+            if len(pool) >= 3
+            else random.sample(MEAL_CATALOG, 3)
+        )
+        weekly_plan.append({
+            "day":   day,
+            "meals": [
+                {
+                    "name":     r["name"],
+                    "calories": r["calories"],
+                    "price":    r["price"],
+                } for r in chosen_recs
+            ]
         })
 
     return {
-        "user_id": profile_dict["user_id"],
-        "budget": profile_dict.get("budget"),
-        "dietary_restrictions": dietary,
-        "weekly_plan": weekly
+        "user_id":             profile["user_id"],
+        "weekly_budget":       weekly_budget,
+        "avg_price_per_meal":  round(avg_price_per_meal, 2),
+        "dietary_restrictions": profile.get("dietary_restrictions", []),
+        "weekly_plan":         weekly_plan,
     }
 
+
+# ---------------------------------------------------------------------------
+# Static fallback catalogue (used when recipe pool is too small)
+# ---------------------------------------------------------------------------
+
 MEAL_CATALOG = [
-    {"name": "Oatmeal with Fruits",         "calories": 350},
-    {"name": "Chicken Salad",               "calories": 450},
-    {"name": "Grilled Salmon with Veggies", "calories": 600},
-    {"name": "Turkey Sandwich",             "calories": 400},
-    {"name": "Quinoa Bowl",                 "calories": 500},
-    {"name": "Veggie Stir-fry",             "calories": 550},
-    {"name": "Greek Yogurt with Nuts",      "calories": 300},
-    {"name": "Protein Smoothie",            "calories": 250},
+    {"name": "Oatmeal with Fruits",         "calories": 350, "price": 5.00},
+    {"name": "Chicken Salad",               "calories": 450, "price": 7.50},
+    {"name": "Grilled Salmon with Veggies", "calories": 600, "price": 12.00},
+    {"name": "Turkey Sandwich",             "calories": 400, "price": 6.00},
+    {"name": "Quinoa Bowl",                 "calories": 500, "price": 8.00},
+    {"name": "Veggie Stir-fry",             "calories": 550, "price": 7.00},
+    {"name": "Greek Yogurt with Nuts",      "calories": 300, "price": 4.50},
+    {"name": "Protein Smoothie",            "calories": 250, "price": 5.50},
 ]
