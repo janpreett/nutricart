@@ -68,6 +68,7 @@ class User(Base):
     last_name       = Column(String, nullable=False)
     email           = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    security_qa_json = Column(JSON, nullable=True)  # Store security questions and answers
     is_active       = Column(Boolean, default=True)
     is_verified     = Column(Boolean, default=False)
     created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))

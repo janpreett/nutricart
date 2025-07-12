@@ -45,6 +45,16 @@ class ApiClient {
   }
   logout        ()  { this.setToken(null); }
   getCurrentUser()  { return this.request('/auth/me'); }
+  
+  /* password reset */
+  resetPassword(token, password) { return this.request('/auth/reset-password', { method:'POST', body:{ token, password } }); }
+  resetPasswordAfterVerification(email, password) { return this.request('/auth/reset-password-verified', { method:'POST', body:{ email, password } }); }
+
+  /* security questions */
+  saveSecurityQuestions(securityQuestions) { return this.request('/auth/security-questions', { method:'POST', body:{ security_questions: securityQuestions } }); }
+  getCurrentUserSecurityQuestions() { return this.request('/auth/my-security-questions'); }
+  getSecurityQuestions(email) { return this.request('/auth/get-security-questions', { method:'POST', body:{ email } }); }
+  verifySecurityAnswers(email, securityAnswers) { return this.request('/auth/verify-security-answers', { method:'POST', body:{ email, security_answers: securityAnswers } }); }
 
   /* profile (single POST covers create + update) */
   createOrUpdateProfile (d) { return this.request('/profile', { method:'POST', body:d }); }

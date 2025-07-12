@@ -87,3 +87,57 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+def update_user_password(db: Session, user_id: int, new_password: str) -> bool:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return False
+    
+    user.hashed_password = get_password_hash(new_password)
+    user.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return True
+
+
+def save_security_questions(db: Session, user_id: int, security_qa: dict) -> bool:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return False
+    
+    # Hash the answers for security
+    hashed_qa = {}
+    for question, answer in security_qa.items():
+        hashed_qa[question] = get_password_hash(answer.lower().strip())
+    
+    user.security_qa_json = hashed_qa
+    user.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return True
+
+
+def verify_security_answers(db: Session, user_id: int, provided_answers: dict) -> bool:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.security_qa_json:
+        return False
+    
+    stored_qa = user.security_qa_json
+    
+    # Check if all questions are answered correctly
+    for question, provided_answer in provided_answers.items():
+        if question not in stored_qa:
+            return False
+        
+        stored_hash = stored_qa[question]
+        if not verify_password(provided_answer.lower().strip(), stored_hash):
+            return False
+    
+    return True
+
+
+def get_user_security_questions(db: Session, user_id: int) -> list:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.security_qa_json:
+        return []
+    
+    return list(user.security_qa_json.keys())

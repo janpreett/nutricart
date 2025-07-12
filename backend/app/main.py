@@ -14,7 +14,10 @@ from app.database import (
 from app.auth import (
     authenticate_user, create_access_token,
     get_password_hash, get_current_active_user,
-    get_db, get_user_by_email, ACCESS_TOKEN_EXPIRE_MINUTES
+    get_db, get_user_by_email, ACCESS_TOKEN_EXPIRE_MINUTES,
+    update_user_password,
+    save_security_questions, verify_security_answers,
+    get_user_security_questions
 )
 
 # ── Schemas ────────────────────────────────────────────────────────────────
@@ -43,6 +46,32 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordVerifiedRequest(BaseModel):
+    email: str
+    password: str
+
+
+class SecurityQuestionsRequest(BaseModel):
+    security_questions: dict  # {"question1": "answer1", "question2": "answer2", "question3": "answer3"}
+
+
+class SecurityAnswersRequest(BaseModel):
+    email: str
+    security_answers: dict  # {"question1": "answer1", "question2": "answer2", "question3": "answer3"}
+
+
+class SecurityQuestionsResponse(BaseModel):
+    questions: list[str]
+
+
+class MessageResponse(BaseModel):
+    message: str
 
 class UserResponse(BaseModel):
     id: int
@@ -129,6 +158,95 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
 @app.get("/auth/me", response_model=UserResponse)
 def get_current_user_info(current: User = Depends(get_current_active_user)):
     return current
+
+
+@app.post("/auth/security-questions", response_model=MessageResponse)
+def save_user_security_questions(
+    request: SecurityQuestionsRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    if len(request.security_questions) != 3:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Exactly 3 security questions are required"
+        )
+    
+    success = save_security_questions(db, current_user.id, request.security_questions)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save security questions"
+        )
+    
+    return {"message": "Security questions saved successfully"}
+
+
+@app.get("/auth/my-security-questions", response_model=SecurityQuestionsResponse)
+def get_current_user_security_questions(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    questions = get_user_security_questions(db, current_user.id)
+    return {"questions": questions}
+
+
+@app.post("/auth/get-security-questions", response_model=SecurityQuestionsResponse)
+def get_security_questions_for_reset(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, request.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email address"
+        )
+    
+    questions = get_user_security_questions(db, user.id)
+    if not questions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account has not set up security questions yet. Please contact support or try logging in to set them up."
+        )
+    
+    return {"questions": questions}
+
+
+@app.post("/auth/verify-security-answers", response_model=MessageResponse)
+def verify_security_questions(request: SecurityAnswersRequest, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, request.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify security answers
+    if not verify_security_answers(db, user.id, request.security_answers):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect security answers"
+        )
+
+    return {"message": "Security answers verified successfully. You can now reset your password."}
+
+
+@app.post("/auth/reset-password-verified", response_model=MessageResponse)
+def reset_password_after_verification(request: ResetPasswordVerifiedRequest, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, request.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Update the password
+    success = update_user_password(db, user.id, request.password)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update password"
+        )
+    
+    return {"message": "Password has been reset successfully"}
 
 # ── Profile (POST = up-sert) ───────────────────────────────────────────────
 @app.post("/profile", response_model=ProfileResponse)

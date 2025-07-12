@@ -129,6 +129,41 @@ export default function ProfileScreen () {
               : 'bg-green-500 hover:bg-green-600'}`}>
           {saving ? 'Saving…' : 'Generate My Meal Plan'}
         </button>
+        
+        {/* Security Settings Section */}
+        <div className="border-t pt-4 mt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Account Security</h3>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Security Questions</p>
+                <p className="text-xs text-gray-500">Set up questions for password recovery</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/security-questions')}
+                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+              >
+                Manage →
+              </button>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Password</p>
+                <p className="text-xs text-gray-500">Reset your account password</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+              >
+                Reset →
+              </button>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
   );
