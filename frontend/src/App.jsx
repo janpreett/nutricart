@@ -15,6 +15,7 @@ import SecurityVerificationScreen from './screens/SecurityVerificationScreen.jsx
 import TermsScreen from './screens/TermsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import ContactScreen from './screens/ContactScreen'
+import UserDetailsScreen from './screens/UserDetailsScreen';
 
 
 export default function App() {
@@ -43,6 +44,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/user-details" element={<ProtectedRoute><UserDetailsScreen /></ProtectedRoute>} />
 
             {/* public auth */}
             <Route path="/login"    element={<LoginScreen />} />

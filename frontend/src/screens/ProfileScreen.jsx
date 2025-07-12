@@ -31,6 +31,11 @@ export default function ProfileScreen () {
         goal:p.goal, budget:p.budget ?? '',
         dietary_restrictions:p.dietary_restrictions ?? []
       });
+
+      if (!user?.name && p.first_name && p.last_name) {
+        user.name = `${p.first_name} ${p.last_name}`;
+      }
+      
     } catch (e) {
       if (e.message !== 'HTTP 404') setError(e.message);
     } finally { setLoading(false); }
@@ -129,7 +134,27 @@ export default function ProfileScreen () {
               : 'bg-green-500 hover:bg-green-600'}`}>
           {saving ? 'Saving…' : 'Generate My Meal Plan'}
         </button>
-        
+
+        {/* Account Details Section */}
+        <div className="border-t pt-4 mt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Account Details</h3>
+
+          {/* User Details Row */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-gray-900">User Details</p>
+              <p className="text-xs text-gray-500">View your personal information</p>
+            </div>
+            <button
+                type="button"
+                onClick={() => navigate('/user-details')}
+                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+            >
+              View →
+            </button>
+          </div>
+        </div>
+
         {/* Security Settings Section */}
         <div className="border-t pt-4 mt-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Account Security</h3>
