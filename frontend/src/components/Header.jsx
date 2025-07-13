@@ -1,12 +1,18 @@
 // frontend/src/components/Header.jsx
-import React from 'react'
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import './Header.css'
 import logoSrc from '../assets/logo.png'
+import LogoutConfirmModal from './LogoutConfirmModal';
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth()
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const handleConfirmLogout = () => {
+        logout();
+        setShowLogoutModal(false);
+    };
 
   return (
     <header className="header">
@@ -46,7 +52,7 @@ export default function Header() {
                 </li>
                 <li className="user-info">Welcome, {user.first_name}!</li>
                 <li>
-                  <button onClick={logout} className="logout-btn">
+                  <button onClick={() => setShowLogoutModal(true)} className="logout-btn">
                     Logout
                   </button>
                 </li>
@@ -68,6 +74,12 @@ export default function Header() {
           </ul>
         </nav>
       </div>
+        {showLogoutModal && (
+            <LogoutConfirmModal
+                onCancel={() => setShowLogoutModal(false)}
+                onConfirm={handleConfirmLogout}
+            />
+        )}
     </header>
-  )
+  );
 }
