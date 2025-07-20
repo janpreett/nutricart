@@ -152,6 +152,88 @@ def adjust_tdee(bmr: float, goal: str) -> float:
         tdee += 300
     return tdee
 
+
+def _py(v):
+    """Convert pandas / NumPy scalars to regular Python types."""
+    if pd.isna(v):
+        return None
+    if isinstance(v, (np.generic,)):
+        return v.item()
+    return v
+
+
+def apply_dietary_restrictions(pool: pd.DataFrame, restrictions: list[str]) -> pd.DataFrame:
+    """
+    Apply dietary restriction filters intelligently.
+    """
+    if not restrictions or pool.empty:
+        return pool
+    
+    filtered = pool.copy()
+    
+    for restriction in restrictions:
+        restriction_lower = restriction.lower()
+        
+        if restriction_lower == "vegetarian":
+            # Exclude common meat items
+            meat_keywords = [
+                'chicken', 'beef', 'pork', 'lamb', 'turkey', 'duck',
+                'bacon', 'sausage', 'meatball', 'steak', 'ham', 'salami',
+                'shrimp', 'salmon', 'cod', 'tuna', 'fish'
+            ]
+            for keyword in meat_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+                
+        elif restriction_lower == "vegan":
+            # Exclude all animal products
+            animal_keywords = [
+                'chicken', 'beef', 'pork', 'lamb', 'turkey', 'duck',
+                'bacon', 'sausage', 'meatball', 'steak', 'ham', 'salami',
+                'shrimp', 'salmon', 'cod', 'tuna', 'fish',
+                'egg', 'milk', 'cheese', 'yogurt', 'butter', 'cream',
+                'mozzarella', 'cheddar', 'parmesan', 'feta', 'cottage cheese'
+            ]
+            for keyword in animal_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+                
+        elif restriction_lower == "dairy-free":
+            # Exclude dairy products
+            dairy_keywords = [
+                'milk', 'cheese', 'yogurt', 'butter', 'cream',
+                'mozzarella', 'cheddar', 'parmesan', 'feta', 'cottage cheese'
+            ]
+            for keyword in dairy_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+                
+        elif restriction_lower == "gluten-free":
+            # Exclude gluten-containing items
+            gluten_keywords = [
+                'bread', 'pasta', 'spaghetti', 'noodles', 'wrap',
+                'sandwich', 'toast', 'waffle', 'pancake'
+            ]
+            for keyword in gluten_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+                
+        elif restriction_lower == "nut-free":
+            # Exclude nuts
+            nut_keywords = ['peanut', 'almond', 'walnut', 'cashew', 'pecan', 'nut']
+            for keyword in nut_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+                
+        elif restriction_lower == "halal":
+            # Exclude pork and alcohol
+            haram_keywords = ['pork', 'bacon', 'ham', 'wine', 'beer']
+            for keyword in haram_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+                
+        elif restriction_lower == "kosher":
+            # Basic kosher restrictions
+            non_kosher_keywords = ['pork', 'bacon', 'ham', 'shrimp', 'lobster', 'crab']
+            for keyword in non_kosher_keywords:
+                filtered = filtered[~filtered.name.str.contains(keyword, case=False, na=False)]
+    
+    return filtered
+
 # ---------------------------------------------------------------------------
 # MEAL-PLAN GENERATION
 # ---------------------------------------------------------------------------
@@ -194,8 +276,7 @@ def generate_meal_plan(profile: dict) -> dict:
     pool = recipes[recipes.cluster == cluster].copy()
 
     # 4a ▸ diet filter -------------------------------------------------------
-    for dr in profile.get("dietary_restrictions") or []:
-        pool = pool[~pool.name.str.contains(dr, case=False, na=False)]
+    pool = apply_dietary_restrictions(pool, profile.get("dietary_restrictions", []))
 
     # 4b ▸ budget filter (±20 % wiggle) -------------------------------------
     budget_ceiling = avg_price_per_meal * 1.20
@@ -204,16 +285,28 @@ def generate_meal_plan(profile: dict) -> dict:
     # 5 ▸ daily sampling -----------------------------------------------------
     weekly_plan: list[dict] = []
     for day in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]:
-        chosen = (
-            pool.sample(3).to_dict("records")
-            if len(pool) >= 3 else random.sample(MEAL_CATALOG, 3)
-        )
+        if len(pool) >= 3:
+            chosen = pool.sample(3).to_dict("records")
+        else:
+            # Fallback to static catalog with complete meal data
+            chosen = random.sample(MEAL_CATALOG, 3)
+        
+        # Ensure all meals have complete nutrition data
+        meals = []
+        for m in chosen:
+            meal_dict = {
+                "name": str(m.get("name", "Unknown Meal")),
+                "calories": int(_py(m.get("calories", 500))),
+                "protein": float(_py(m.get("protein", 20))),
+                "carbs": float(_py(m.get("carbs", 50))),
+                "fat": float(_py(m.get("fat", 15))),
+                "price": float(_py(m.get("price", 8.00)))
+            }
+            meals.append(meal_dict)
+            
         weekly_plan.append({
             "day": day,
-            "meals": [
-                {"name": m["name"], "calories": m["calories"], "price": m["price"]}
-                for m in chosen
-            ]
+            "meals": meals
         })
 
     return {
@@ -228,17 +321,8 @@ def generate_meal_plan(profile: dict) -> dict:
 # ONE-MEAL PICKER  – used by /swap_meal
 # ---------------------------------------------------------------------------
 
-def _py(v):
-    """Convert pandas / NumPy scalars to regular Python types."""
-    if pd.isna(v):
-        return None
-    if isinstance(v, (np.generic,)):
-        return v.item()
-    return v
-
-
 def pick_random_meal(profile: dict) -> dict:
-    """Return ONE meal that fits the user’s cluster, diet & budget."""
+    """Return ONE meal that fits the user's cluster, diet & budget."""
     bmr  = calculate_bmr(profile["age"], profile["weight"], profile["height"])
     tdee = adjust_tdee(bmr, profile["goal"])
 
@@ -256,37 +340,40 @@ def pick_random_meal(profile: dict) -> dict:
 
     pool = recipes[recipes.cluster == cluster].copy()
 
-    for dr in profile.get("dietary_restrictions") or []:
-        pool = pool[~pool.name.str.contains(dr, case=False, na=False)]
+    # Apply dietary restrictions
+    pool = apply_dietary_restrictions(pool, profile.get("dietary_restrictions", []))
 
+    # Apply budget filter
     if profile.get("budget"):
         pool = pool[pool.price <= profile["budget"] / 21]
 
     if pool.empty:
+        # Return a complete meal from the static catalog
         choice = random.choice(MEAL_CATALOG)
-        return {**choice, "protein": None, "carbs": None, "fat": None}
+        return choice
 
+    # Select a random meal and ensure all fields are present
     m = pool.sample(1).iloc[0]
     return {
-        "name":     str(m.name),
-        "calories": int(_py(m.calories)),
-        "price":    float(_py(m.price)),
-        "protein":  _py(getattr(m, "protein", None)),
-        "carbs":    _py(getattr(m, "carbs",   None)),
-        "fat":      _py(getattr(m, "fat",     None)),
+        "name":     str(m.get("name", "Unknown Meal")),
+        "calories": int(_py(m.get("calories", 500))),
+        "protein":  float(_py(m.get("protein", 20))),
+        "carbs":    float(_py(m.get("carbs", 50))),
+        "fat":      float(_py(m.get("fat", 15))),
+        "price":    float(_py(m.get("price", 8.00)))
     }
 
 # ---------------------------------------------------------------------------
-# Static fallback catalogue
+# Static fallback catalogue - NOW WITH COMPLETE NUTRITION DATA
 # ---------------------------------------------------------------------------
 
 MEAL_CATALOG = [
-    {"name": "Oatmeal with Fruits",         "calories": 350, "price": 5.00},
-    {"name": "Chicken Salad",               "calories": 450, "price": 7.50},
-    {"name": "Grilled Salmon with Veggies", "calories": 600, "price": 12.00},
-    {"name": "Turkey Sandwich",             "calories": 400, "price": 6.00},
-    {"name": "Quinoa Bowl",                 "calories": 500, "price": 8.00},
-    {"name": "Veggie Stir-fry",             "calories": 550, "price": 7.00},
-    {"name": "Greek Yogurt with Nuts",      "calories": 300, "price": 4.50},
-    {"name": "Protein Smoothie",            "calories": 250, "price": 5.50},
+    {"name": "Oatmeal with Fruits",         "calories": 350, "price": 5.00,  "protein": 8,  "carbs": 65, "fat": 7},
+    {"name": "Tofu Stir Fry",               "calories": 410, "price": 7.50,  "protein": 22, "carbs": 40, "fat": 18},
+    {"name": "Quinoa Bowl",                 "calories": 500, "price": 8.00,  "protein": 25, "carbs": 50, "fat": 20},
+    {"name": "Veggie Stir-fry with Tofu",   "calories": 440, "price": 7.00,  "protein": 25, "carbs": 35, "fat": 20},
+    {"name": "Greek Yogurt with Berries",   "calories": 300, "price": 4.50,  "protein": 20, "carbs": 25, "fat": 10},
+    {"name": "Protein Smoothie",            "calories": 250, "price": 5.50,  "protein": 20, "carbs": 10, "fat": 8},
+    {"name": "Black Bean Tacos",            "calories": 410, "price": 6.00,  "protein": 22, "carbs": 40, "fat": 14},
+    {"name": "Vegan Buddha Bowl",           "calories": 510, "price": 9.00,  "protein": 22, "carbs": 55, "fat": 18},
 ]

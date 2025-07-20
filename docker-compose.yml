@@ -32,7 +32,7 @@ services:
         VITE_API_URL: "http://localhost:8000"
     container_name: nutricart-frontend
     ports:
-      - "5173:5173"   # <-- map host 5173 → container 5173
+      - "5173"   # <-- map host 5173 → container 5173
     environment:
       # runtime API URL (just in case)
       - VITE_API_URL=http://localhost:8000
