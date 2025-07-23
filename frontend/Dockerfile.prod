@@ -3,6 +3,10 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Allow passing in the API URL at build time (and also at run time)
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Copy manifest and install ALL deps (including dev)
 COPY package*.json ./
 RUN npm install
